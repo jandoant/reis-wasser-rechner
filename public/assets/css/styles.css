@@ -250,6 +250,91 @@ button { cursor: pointer; }
 
 .footnote { font: 400 12px/1.5 var(--font-mono); color: var(--muted); }
 
+/* ---------- Measuring cup (detail + settings) ---------- */
+.intro__top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.settings-link {
+  font: 500 12px var(--font-mono);
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 999px;
+  padding: 7px 12px;
+}
+.settings-link:hover { border-color: var(--ink); }
+
+.result__cups { margin-top: 6px; font: 400 13px var(--font-mono); color: var(--ink-muted); min-height: 1.4em; }
+
+.cup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.cup__row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.cup__label { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cup__title { font: 700 15px var(--font-sans); }
+.cup__help { font: 400 12px/1.5 var(--font-mono); color: var(--muted); }
+.cup__help a, .link-button { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.link-button { background: none; border: none; padding: 0; font: inherit; }
+.link-button[hidden] { display: none; }
+
+.field {
+  flex: none;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  background: var(--paper);
+}
+.field:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.field__input {
+  width: 4ch;
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: right;
+  font: 700 20px var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.field__input:focus { outline: none; }
+.field__input::-webkit-inner-spin-button,
+.field__input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.field__unit { font: 600 14px var(--font-sans); }
+.field--sm { padding: 4px 8px; }
+.field--sm .field__input { font-size: 16px; }
+
+/* ---------- Settings ---------- */
+.page--settings { gap: 22px; }
+.settings-card { display: flex; flex-direction: column; gap: 10px; padding: 16px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); }
+.settings-section { display: flex; flex-direction: column; gap: 12px; }
+.settings-group { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.setting-list { display: flex; flex-direction: column; }
+.setting-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.setting-row--main { border-bottom: none; padding: 0; }
+.setting-row__label { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.setting-row__name { font: 600 15px/1.25 var(--font-sans); }
+.setting-row__controls { display: flex; align-items: center; gap: 8px; }
+.icon-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--card);
+  font-size: 16px;
+  line-height: 1;
+}
+.icon-button:hover { border-color: var(--ink); }
+.icon-button[hidden] { display: none; }
+.pill--wide { width: 100%; padding: 12px 14px; }
+
 /* ---------- Small screens ---------- */
 @media (max-width: 360px) {
   :root { --gutter: 16px; }

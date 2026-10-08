@@ -5,7 +5,7 @@ import { CATEGORIES, NOT_RECOMMENDED, RICE, riceInCategory } from '../data/rice.
 import { formatRatio } from '../lib/calc.js';
 import { html, render } from '../lib/dom.js';
 import { getState, isFavorite, subscribe } from '../store.js';
-import { riceHref } from '../router.js';
+import { riceHref, SETTINGS_HREF } from '../router.js';
 
 const favoriteChip = (rice) => html`
   <li><a class="chip" href="${riceHref(rice.id)}">${rice.name}</a></li>`;
@@ -38,7 +38,10 @@ function template() {
   return html`
     <div class="page page--home">
       <header class="intro">
-        <span class="eyebrow">Digitaler Reiskocher</span>
+        <div class="intro__top">
+          <span class="eyebrow">Digitaler Reiskocher</span>
+          <a class="settings-link" href="${SETTINGS_HREF}">Messbecher ⚙</a>
+        </div>
         <h1 class="display">Reis &amp; Wasser</h1>
         <p class="lead">Wähle deine Sorte, wir rechnen das Wasser aus.</p>
       </header>

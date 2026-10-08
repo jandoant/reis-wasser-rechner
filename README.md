@@ -8,6 +8,7 @@ Static web app: plain HTML, CSS and ES modules. There is no framework, no build 
 
 - 21 varieties in 5 categories, with ratio, mode and time taken from the rice sheet (`2401-reis-wasser-a4-de-drk.pdf`)
 - Amount input via −/+ (25 g steps), presets or typing; values are clamped to 0–2000 g
+- Measuring cup settings: ml per cup, plus grams of rice per cup for each variety, saved in the browser
 - Favourites and the last used amount are saved in `localStorage`
 - Deep links (`#/reis/basmati-reis`) and the browser back button work
 - Offline support via a service worker
@@ -26,30 +27,39 @@ public/                     ← deploy this folder
     ├── icons/              App icons (SVG + PNG)
     └── js/
         ├── main.js         Entry: router → views, SW registration
-        ├── router.js       Hash routing (#/ and #/reis/<id>)
-        ├── config.js       Tunable assumptions (ratio basis, density, presets, …)
+        ├── router.js       Hash routing (#/, #/reis/<id>, #/einstellungen)
+        ├── config.js       Defaults (cup ml, grams per cup, presets, …)
         ├── store.js        App state + persistence + subscriptions
         ├── data/rice.js    Rice varieties and categories
         ├── lib/calc.js     Pure calculation & formatting (unit-tested)
         ├── lib/dom.js      Escaping `html` template helper
         ├── lib/storage.js  Fail-safe localStorage wrapper
+        ├── lib/number-field.js  Number input ↔ store binding
         └── views/
             ├── home.js     Overview: favourites + categories
-            └── detail.js   Calculator for one variety
+            ├── detail.js   Calculator for one variety
+            └── settings.js Measuring cup settings
 tests/calc.test.js          Unit tests (node:test, no dependencies)
 ```
 
 ## How the water is calculated
 
-The sheet gives ratios such as `1 : 1,25`. Rice-cooker ratios are normally meant **by volume**, so the app converts grams to volume first:
+The official ratios are per measuring cup: rice and water are measured with the same cup (1 cup rice : 1,25 cups water for white rice). To get from grams to millilitres, the app uses two values:
 
 ```
-water (ml) = grams / density × ratio        density = 0.8 g/ml
+cups of rice  = grams ÷ grams of rice per cup     (per variety)
+water (ml)    = cups of rice × ratio × ml per cup (one value for the cup)
 ```
 
-For example, 200 g basmati → 250 ml rice volume → 312.5 ml water, displayed as 315 ml (rounded to 5 ml).
+For example, with the defaults of 150 g and 180 ml, 200 g basmati is 1.33 cups of rice, which needs 1.67 cups of water, or 300 ml.
 
-If your sheet means weight, set `RATIO_BASIS = 'weight'` in `public/assets/js/config.js`. The water is then simply `grams × ratio`.
+Both values can be set in the app and are stored in the browser's `localStorage`:
+- **ml per cup:** on the settings page (`#/einstellungen`, linked from the home screen as "Messbecher ⚙").
+- **grams per cup:** for each variety, either on the settings page or directly on that variety's detail page.
+
+Until a value has been weighed, the app uses the defaults from `public/assets/js/config.js` (`CUP_ML`, `GRAMS_PER_CUP`) and labels them as default values.
+
+**Measuring:** to get ml per cup, fill the cup to the brim with water and weigh it; 1 g of water is 1 ml. To get grams per cup, fill the cup loosely with dry rice, level it off and weigh it. Subtract the cup's own weight in both cases.
 
 ## Calorie sources
 

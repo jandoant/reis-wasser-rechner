@@ -2,19 +2,25 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  clampGrams, displayWaterMl, formatNumber, formatRatio, kcal, roundTo, stepGrams, waterMl,
+  clampGrams, clampInt, displayWaterMl, formatDecimal, formatNumber, formatRatio, kcal, parseInteger,
+  riceCups, roundTo, stepGrams, waterCups, waterMl,
 } from '../public/assets/js/lib/calc.js';
 import { CATEGORIES, RICE, getRice } from '../public/assets/js/data/rice.js';
 import { parseRoute } from '../public/assets/js/router.js';
 
-test('waterMl — weight basis applies the ratio directly', () => {
-  assert.equal(waterMl(200, 1.25, { basis: 'weight' }), 250);
-  assert.equal(waterMl(200, 2, { basis: 'weight' }), 400);
+test('cups — grams are converted with the grams-per-cup value', () => {
+  assert.equal(riceCups(300, 150), 2);
+  assert.equal(waterCups(300, 1.25, 150), 2.5); // matches the official table: 2 cups rice → 2,5 cups water
+  assert.equal(riceCups(300, 0), 0);
 });
 
-test('waterMl — volume basis converts grams via density first', () => {
-  assert.equal(waterMl(200, 1.25, { basis: 'volume', density: 0.8 }), 312.5);
-  assert.equal(waterMl(400, 2, { basis: 'volume', density: 0.8 }), 1000);
+test('waterMl — cups of water × ml per cup', () => {
+  assert.equal(waterMl(300, 1.25, { gramsPerCup: 150, cupMl: 180 }), 450);
+  assert.equal(waterMl(200, 2, { gramsPerCup: 160, cupMl: 200 }), 500);
+});
+
+test('waterMl — defaults are 150 g and 180 ml per cup', () => {
+  assert.equal(waterMl(200, 1.25), 300);
 });
 
 test('waterMl / kcal — zero, negative and invalid input yield 0', () => {
@@ -22,11 +28,21 @@ test('waterMl / kcal — zero, negative and invalid input yield 0', () => {
     assert.equal(waterMl(g, 2), 0);
     assert.equal(kcal(g, 350), 0);
   }
+  assert.equal(waterMl(200, 2, { gramsPerCup: 150, cupMl: 0 }), 0);
 });
 
 test('displayWaterMl rounds to 5 ml', () => {
-  assert.equal(displayWaterMl(200, 1.25, { basis: 'volume', density: 0.8 }), 315);
+  assert.equal(displayWaterMl(210, 1.25, { gramsPerCup: 150, cupMl: 180 }), 315);
   assert.equal(roundTo(312.4, 5), 310);
+});
+
+test('parseInteger / clampInt', () => {
+  assert.equal(parseInteger(' 42 '), 42);
+  assert.equal(parseInteger(''), null);
+  assert.equal(parseInteger('x'), null);
+  assert.equal(clampInt('5', 20, 500, 150), 20);
+  assert.equal(clampInt('', 20, 500, 150), 150);
+  assert.equal(clampInt('9999', 20, 500, 150), 500);
 });
 
 test('kcal scales per 100 g', () => {
@@ -52,6 +68,8 @@ test('stepGrams snaps to the 25 g grid', () => {
 
 test('formatting uses German conventions', () => {
   assert.equal(formatNumber(1234.4), '1.234');
+  assert.equal(formatDecimal(1.333), '1,3');
+  assert.equal(formatDecimal(2), '2');
   assert.equal(formatRatio(1.25), '1,25');
   assert.equal(formatRatio(2), '2');
 });
@@ -76,5 +94,6 @@ test('router parses hashes', () => {
   assert.deepEqual(parseRoute(''), { name: 'home' });
   assert.deepEqual(parseRoute('#/'), { name: 'home' });
   assert.deepEqual(parseRoute('#/reis/basmati-reis'), { name: 'rice', id: 'basmati-reis' });
+  assert.deepEqual(parseRoute('#/einstellungen'), { name: 'settings' });
   assert.deepEqual(parseRoute('#/foo'), { name: 'unknown' });
 });

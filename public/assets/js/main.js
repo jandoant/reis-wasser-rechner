@@ -5,6 +5,7 @@ import { getRice } from './data/rice.js';
 import { redirectHome, startRouter } from './router.js';
 import { mountDetail } from './views/detail.js';
 import { mountHome } from './views/home.js';
+import { mountSettings } from './views/settings.js';
 
 const root = document.getElementById('app');
 let cleanup = () => {};
@@ -21,6 +22,9 @@ function show(route) {
   if (route.name === 'home') {
     cleanup = mountHome(root);
     window.scrollTo(0, homeScrollY);
+  } else if (route.name === 'settings') {
+    cleanup = mountSettings(root);
+    window.scrollTo(0, 0);
   } else {
     cleanup = mountDetail(root, getRice(route.id));
     window.scrollTo(0, 0);

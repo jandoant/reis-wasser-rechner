@@ -1,20 +1,20 @@
 /**
  * Detail view: amount input and calculated water / calories for one variety.
  * The markup is rendered once; state changes only patch the dynamic parts,
- * so the number input keeps focus while typing.
+ * so number inputs keep focus while typing.
  */
-import { GRAMS, RATIO_BASIS, RICE_DENSITY_G_PER_ML } from '../config.js';
+import { GRAMS, GRAMS_PER_CUP } from '../config.js';
 import { getCategory } from '../data/rice.js';
-import { displayWaterMl, formatNumber, formatRatio, kcal, stepGrams } from '../lib/calc.js';
+import {
+  displayWaterMl, formatDecimal, formatNumber, formatRatio, kcal, riceCups, stepGrams, waterCups,
+} from '../lib/calc.js';
 import { $, $$, html, render } from '../lib/dom.js';
-import { getState, setGrams, subscribe, toggleFavorite } from '../store.js';
-import { HOME_HREF } from '../router.js';
-
-function basisNote() {
-  if (RATIO_BASIS !== 'volume') return 'Wasser = Reis (g) × Verhältnis.';
-  const mlPerGram = formatNumber(1000 / RICE_DENSITY_G_PER_ML);
-  return `Das Verhältnis gilt nach Volumen. Umrechnung: 1 kg Reis ≈ ${mlPerGram} ml.`;
-}
+import { bindNumberField } from '../lib/number-field.js';
+import {
+  cupFor, getGramsPerCup, getState, hasCustomGramsPerCup, resetGramsPerCup, setGrams, setGramsPerCup,
+  subscribe, toggleFavorite,
+} from '../store.js';
+import { HOME_HREF, SETTINGS_HREF } from '../router.js';
 
 /** "Quelle: <link>[, <link>] (note)" under the calorie value. */
 function sourcesLine(rice) {
@@ -46,8 +46,7 @@ function template(rice) {
         <div class="stepper">
           <button type="button" class="round" data-action="dec" aria-label="${GRAMS.step} g weniger">−</button>
           <div class="stepper__value">
-            <input id="grams" class="stepper__input" type="number" inputmode="numeric"
-              min="${GRAMS.min}" max="${GRAMS.max}" step="1" autocomplete="off">
+            <input id="grams" class="stepper__input" type="number" inputmode="numeric" step="1" autocomplete="off">
             <span class="stepper__unit">g</span>
           </div>
           <button type="button" class="round round--solid" data-action="inc" aria-label="${GRAMS.step} g mehr">+</button>
@@ -62,12 +61,31 @@ function template(rice) {
         <div class="result__water">
           <span class="eyebrow eyebrow--inverse">Wasser</span>
           <p class="result__value"><output data-out="water" aria-live="polite">0</output><span class="result__unit">ml</span></p>
+          <p class="result__cups" data-out="cups"></p>
         </div>
         <dl class="result__facts">
           <div><dt>Verhältnis</dt><dd>1 : ${formatRatio(rice.ratio)}</dd></div>
           <div><dt>Modus</dt><dd class="accent">${rice.mode}</dd></div>
           <div><dt>Kochzeit*</dt><dd>≈ ${rice.time}</dd></div>
         </dl>
+      </section>
+
+      <section class="cup" aria-labelledby="cup-title">
+        <div class="cup__row">
+          <div class="cup__label">
+            <h2 id="cup-title" class="cup__title"><label for="grams-per-cup">Reis pro Messbecher</label></h2>
+            <span class="mono muted" data-out="cup-status"></span>
+          </div>
+          <div class="field">
+            <input id="grams-per-cup" class="field__input" type="number" inputmode="numeric" step="1" autocomplete="off">
+            <span class="field__unit">g</span>
+          </div>
+        </div>
+        <p class="cup__help">
+          Becher locker mit trockenem ${rice.name} füllen, glatt streichen und wiegen.
+          <button type="button" class="link-button" data-action="reset-cup" hidden>Standard (${GRAMS_PER_CUP.default} g) wiederherstellen</button>
+        </p>
+        <p class="cup__help"><span data-out="cup-ml"></span> · <a href="${SETTINGS_HREF}">Becher-Einstellungen</a></p>
       </section>
 
       <section class="kcal" aria-labelledby="kcal-title">
@@ -83,7 +101,7 @@ function template(rice) {
 
       <p class="footnote">
         * Die Kochzeit bezieht sich auf 2 Portionen. Alle Zeitangaben sind Richtwerte.<br>
-        ${basisNote()}
+        Das Verhältnis gilt pro Messbecher: Reis und Wasser werden mit demselben Becher abgemessen.
       </p>
     </div>`;
 }
@@ -97,17 +115,35 @@ export function mountDetail(root, rice) {
   document.title = `${rice.name} · Reis & Wasser`;
   render(root, template(rice));
 
-  const input = /** @type {HTMLInputElement} */ ($(root, '#grams'));
+  const out = (name) => $(root, `[data-out="${name}"]`);
   const favButton = $(root, '[data-action="toggle-fav"]');
-  const waterOut = $(root, '[data-out="water"]');
-  const kcalOut = $(root, '[data-out="kcal"]');
+  const resetCupButton = $(root, '[data-action="reset-cup"]');
   const presets = $$(root, '[data-action="preset"]');
 
-  function update({ grams, favorites }) {
-    waterOut.textContent = formatNumber(displayWaterMl(grams, rice.ratio));
-    kcalOut.textContent = formatNumber(kcal(grams, rice.kcalPer100g));
-    // Don't overwrite the field while the user is typing in it.
-    if (document.activeElement !== input) input.value = String(grams);
+  const gramsField = bindNumberField($(root, '#grams'), {
+    min: GRAMS.min, max: GRAMS.max, get: () => getState().grams, set: setGrams,
+  });
+  const cupField = bindNumberField($(root, '#grams-per-cup'), {
+    min: GRAMS_PER_CUP.min, max: GRAMS_PER_CUP.max,
+    get: () => getGramsPerCup(rice.id), set: (g) => setGramsPerCup(rice.id, g),
+  });
+
+  function update(state) {
+    const { grams, favorites, cupMl } = state;
+    const cup = cupFor(rice.id);
+    const custom = hasCustomGramsPerCup(rice.id);
+
+    out('water').textContent = formatNumber(displayWaterMl(grams, rice.ratio, cup));
+    out('cups').textContent = grams > 0
+      ? `≈ ${formatDecimal(riceCups(grams, cup.gramsPerCup))} Becher Reis → ${formatDecimal(waterCups(grams, rice.ratio, cup.gramsPerCup))} Becher Wasser`
+      : '';
+    out('kcal').textContent = formatNumber(kcal(grams, rice.kcalPer100g));
+    out('cup-status').textContent = custom ? 'Eigener Wert' : 'Standardwert – einmal abwiegen für genaue Werte';
+    out('cup-ml').textContent = `1 Becher = ${formatNumber(cupMl)} ml Wasser`;
+    resetCupButton.hidden = !custom;
+
+    gramsField.sync();
+    cupField.sync();
     presets.forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.grams) === grams)));
     const fav = favorites.includes(rice.id);
     favButton.textContent = fav ? '★ Favorit' : '☆ Merken';
@@ -123,23 +159,18 @@ export function mountDetail(root, rice) {
       case 'dec': setGrams(stepGrams(grams, -1)); break;
       case 'preset': setGrams(Number(target.dataset.grams)); break;
       case 'toggle-fav': toggleFavorite(rice.id); break;
+      case 'reset-cup': resetGramsPerCup(rice.id); break;
     }
   };
-  const onInput = () => setGrams(input.value);
-  // On commit (blur/enter), show the normalised value (e.g. clamped to max).
-  const onChange = () => { input.value = String(getState().grams); };
-  const onKeydown = (e) => { if (e.key === 'Enter') input.blur(); };
 
   root.addEventListener('click', onClick);
-  input.addEventListener('input', onInput);
-  input.addEventListener('change', onChange);
-  input.addEventListener('keydown', onKeydown);
   const unsubscribe = subscribe(update);
   update(getState());
 
   return () => {
     unsubscribe();
+    gramsField.destroy();
+    cupField.destroy();
     root.removeEventListener('click', onClick);
   };
 }
-

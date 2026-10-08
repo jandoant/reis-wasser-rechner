@@ -4,19 +4,22 @@
  *
  *   #/              → home
  *   #/reis/<id>     → detail for one variety
+ *   #/einstellungen → settings (measuring cup)
  */
 
 export const HOME_HREF = '#/';
+export const SETTINGS_HREF = '#/einstellungen';
 export const riceHref = (id) => `#/reis/${encodeURIComponent(id)}`;
 
 /**
- * @typedef {{name: 'home'} | {name: 'rice', id: string} | {name: 'unknown'}} Route
+ * @typedef {{name: 'home'} | {name: 'settings'} | {name: 'rice', id: string} | {name: 'unknown'}} Route
  * @param {string} hash
  * @returns {Route}
  */
 export function parseRoute(hash) {
   const path = hash.replace(/^#/, '') || '/';
   if (path === '/') return { name: 'home' };
+  if (/^\/einstellungen\/?$/.test(path)) return { name: 'settings' };
   const match = /^\/reis\/([^/]+)\/?$/.exec(path);
   if (match) return { name: 'rice', id: decodeURIComponent(match[1]) };
   return { name: 'unknown' };

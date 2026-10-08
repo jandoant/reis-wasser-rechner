@@ -1,17 +1,27 @@
 /**
- * Central configuration. Everything that is a tunable assumption lives here.
+ * Central configuration. Everything that is a tunable default lives here.
+ *
+ * The rice sheet's ratios are per measuring cup: rice and water are both
+ * measured with the same cup (e.g. 1 cup rice : 1,25 cups water). To turn a
+ * weight of rice into ml of water the app needs two values, both user-editable
+ * in the settings and stored in the browser:
+ *   - how many ml one cup holds        (one value, the cup)
+ *   - how many grams of rice fill it   (one value per variety)
  */
 
-/**
- * How the "Reis : Wasser" ratio on the rice sheet is meant.
- *  - 'volume': ratio refers to volume (e.g. measuring cup). Grams entered by
- *    the user are converted to millilitres of dry rice first.
- *  - 'weight': ratio is applied directly as grams rice → ml water.
- */
-export const RATIO_BASIS = 'volume';
+/** Measuring cup volume in ml (water). */
+export const CUP_ML = Object.freeze({
+  default: 180,
+  min: 50,
+  max: 1000,
+});
 
-/** Bulk density of dry rice/quinoa in g/ml (used only when RATIO_BASIS = 'volume'). */
-export const RICE_DENSITY_G_PER_ML = 0.8;
+/** Grams of dry rice per level cup. Used until the user weighs their own. */
+export const GRAMS_PER_CUP = Object.freeze({
+  default: 150,
+  min: 20,
+  max: 1000,
+});
 
 /** Water amounts are rounded to this step (ml) for display. */
 export const WATER_ROUNDING_ML = 5;
@@ -28,5 +38,5 @@ export const GRAMS = Object.freeze({
 /** Favourites a first-time visitor starts with. */
 export const DEFAULT_FAVORITES = Object.freeze(['basmati-reis']);
 
-/** localStorage key; bump the version suffix if the stored shape changes. */
+/** localStorage key; bump the version suffix if the stored shape changes incompatibly. */
 export const STORAGE_KEY = 'reis-wasser-rechner:v1';
