@@ -64,7 +64,10 @@ test('rice data is complete and consistent', () => {
   for (const r of RICE) {
     assert.match(r.id, /^[a-z0-9-]+$/);
     assert.ok(categories.has(r.category), `${r.id} has a known category`);
-    assert.ok(r.ratio > 0 && r.kcalPer100g > 0);
+    assert.ok(r.ratio > 0);
+    assert.ok(r.kcalPer100g >= 300 && r.kcalPer100g <= 400, `${r.id}: plausible kcal for uncooked grain`);
+    assert.ok(r.kcalSources.length > 0, `${r.id} has a calorie source`);
+    for (const s of r.kcalSources) assert.match(s.url, /^https:\/\//, `${r.id}: source URL`);
   }
   assert.equal(getRice('kleb-reis').soak, true);
 });

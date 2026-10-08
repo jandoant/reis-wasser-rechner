@@ -233,14 +233,17 @@ button { cursor: pointer; }
 
 .kcal {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
+  flex-direction: column;
+  gap: 10px;
   border-top: 1.5px solid var(--ink);
   border-bottom: 1px solid var(--line);
   padding: 14px 0;
 }
-.kcal > div { display: flex; flex-direction: column; gap: 2px; }
+.kcal__row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.kcal__label { display: flex; flex-direction: column; gap: 2px; }
+.kcal__source { font: 400 12px/1.5 var(--font-mono); color: var(--muted); }
+.kcal__source a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
+.kcal__source a:hover { color: var(--ink); }
 .kcal__title { font: 700 15px var(--font-sans); }
 .kcal__value { font: 800 28px var(--font-sans); letter-spacing: -0.02em; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .kcal__value span { font-weight: 600; font-size: 15px; }

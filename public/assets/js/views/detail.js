@@ -16,6 +16,15 @@ function basisNote() {
   return `Das Verhältnis gilt nach Volumen. Umrechnung: 1 kg Reis ≈ ${mlPerGram} ml.`;
 }
 
+/** "Quelle: <link>[, <link>] (note)" under the calorie value. */
+function sourcesLine(rice) {
+  const links = rice.kcalSources.map((s, i) => html`${i > 0 ? ', ' : ''}<a href="${s.url}" target="_blank" rel="noopener noreferrer">${s.label}</a>`);
+  return html`
+    <p class="kcal__source">
+      ${rice.kcalSources.length > 1 ? 'Quellen' : 'Quelle'}: ${links}${rice.kcalNote ? html` <span class="kcal__note">(${rice.kcalNote})</span>` : ''}
+    </p>`;
+}
+
 /** @param {import('../data/rice.js').Rice} rice */
 function template(rice) {
   return html`
@@ -61,17 +70,20 @@ function template(rice) {
         </dl>
       </section>
 
-      <section class="kcal">
-        <div>
-          <h2 class="kcal__title">Kalorien gesamt</h2>
-          <span class="mono muted">ca. ${rice.kcalPer100g} kcal / 100 g roh</span>
+      <section class="kcal" aria-labelledby="kcal-title">
+        <div class="kcal__row">
+          <div class="kcal__label">
+            <h2 id="kcal-title" class="kcal__title">Kalorien gesamt</h2>
+            <span class="mono muted">${rice.kcalPer100g} kcal / 100 g roh</span>
+          </div>
+          <p class="kcal__value"><output data-out="kcal">0</output> <span>kcal</span></p>
         </div>
-        <p class="kcal__value"><output data-out="kcal">0</output> <span>kcal</span></p>
+        ${sourcesLine(rice)}
       </section>
 
       <p class="footnote">
         * Die Kochzeit bezieht sich auf 2 Portionen. Alle Zeitangaben sind Richtwerte.<br>
-        ${basisNote()} Kalorienangaben sind Näherungswerte.
+        ${basisNote()}
       </p>
     </div>`;
 }

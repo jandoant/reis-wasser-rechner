@@ -3,7 +3,7 @@
  * without signal). Bump CACHE_VERSION whenever you deploy changed assets
  * so returning visitors get the new files immediately.
  */
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE = `reis-wasser-${CACHE_VERSION}`;
 
 const APP_SHELL = [
@@ -16,6 +16,7 @@ const APP_SHELL = [
   './assets/js/router.js',
   './assets/js/store.js',
   './assets/js/data/rice.js',
+  './assets/js/data/sources.js',
   './assets/js/lib/calc.js',
   './assets/js/lib/dom.js',
   './assets/js/lib/storage.js',
