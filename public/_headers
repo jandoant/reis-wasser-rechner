@@ -1,0 +1,13 @@
+# Cloudflare Pages response headers
+# https://developers.cloudflare.com/pages/configuration/headers/
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self'; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; manifest-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+
+# Always revalidate the service worker so updates roll out promptly.
+/sw.js
+  Cache-Control: no-cache

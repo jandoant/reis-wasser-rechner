@@ -1,0 +1,14 @@
+{
+  "name": "reis-wasser-rechner",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Reis-Wasser-Rechner für den Digitalen Reiskocher — statische Web-App für Cloudflare Pages",
+  "type": "module",
+  "scripts": {
+    "start": "npx --yes serve public -l 8080",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
